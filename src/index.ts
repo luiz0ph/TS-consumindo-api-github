@@ -35,10 +35,15 @@ function requisicaoGithub(nomeDoUser: string) {
             'Content-Type': 'application/json'
         }})
         .then((res => {
-            const data = res.json();
+            const data = res.json().then(dado => {
+                const novoUser = new User(dado.id, dado.login, dado.name, dado.bio, dado.public_repos, dado.repos_url);
+                users.push(novoUser);
+                console.log(novoUser);
+            });
         }))
         .catch((err) => console.error(`Erro: ${err}`))
 }
 
 // Teste com meu github
 requisicaoGithub('luiz0ph');
+console.log(users);

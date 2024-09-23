@@ -1,15 +1,31 @@
-var users = [];
+const users = [];
+class User {
+    constructor(id, login, name, bio, public_repos, repos_url) {
+        this.id = id;
+        this.login = login;
+        this.name = name;
+        this.bio = bio;
+        this.public_repos = public_repos;
+        this.repos_url = repos_url;
+    }
+}
 // Função que recebe o nome do usuario e faz uma requisição
 function requisicaoGithub(nomeDoUser) {
-    fetch("https://api.github.com/users/".concat(nomeDoUser), {
+    fetch(`https://api.github.com/users/${nomeDoUser}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'
         }
     })
-        .then((function (res) { return console.log(res.json()); }))
-        .then((function (data) { return console.log(data); }))
-        .catch(function (err) { return console.error("Erro: ".concat(err)); });
+        .then((res => {
+        const data = res.json().then(dado => {
+            const novoUser = new User(dado.id, dado.login, dado.name, dado.bio, dado.public_repos, dado.repos_url);
+            users.push(novoUser);
+            console.log(novoUser);
+        });
+    }))
+        .catch((err) => console.error(`Erro: ${err}`));
 }
-// Teste para ver se está dando certo
+// Teste com meu github
 requisicaoGithub('luiz0ph');
+console.log(users);
