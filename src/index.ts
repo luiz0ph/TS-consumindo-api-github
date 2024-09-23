@@ -38,7 +38,7 @@ function requisicaoGithub(nomeDoUser: string) {
             const data = res.json().then(dado => {
                 const novoUser = new User(dado.id, dado.login, dado.name, dado.bio, dado.public_repos, dado.repos_url);
                 users.push(novoUser);
-                console.log(novoUser);
+                console.log(`O usuario ${novoUser.name} foi adicionado na lista`);
             });
         }))
         .catch((err) => console.error(`Erro: ${err}`))
@@ -46,4 +46,8 @@ function requisicaoGithub(nomeDoUser: string) {
 
 // Teste com meu github
 requisicaoGithub('luiz0ph');
-console.log(users);
+
+// Listar usuarios salvos na lista
+function listarUsuarios() {
+    console.log(users);
+}
