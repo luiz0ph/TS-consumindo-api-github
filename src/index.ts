@@ -1,5 +1,5 @@
-const users: object[] = [];
-
+const prompt = require('readline-sync');
+const users: User[] = [];
 // Dados esperados do user
 interface DadosUser {
     id: number
@@ -28,8 +28,8 @@ class User implements DadosUser {
 }
 
 // Função que recebe o nome do usuario e faz uma requisição
-function requisicaoGithub(nomeDoUser: string) {
-    fetch(`https://api.github.com/users/${nomeDoUser}`, {
+async function addUser(nomeDoUser: string) {
+    await fetch(`https://api.github.com/users/${nomeDoUser}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'
@@ -39,14 +39,10 @@ function requisicaoGithub(nomeDoUser: string) {
                 const novoUser = new User(dado.id, dado.login, dado.name, dado.bio, dado.public_repos, dado.repos_url);
                 users.push(novoUser);
                 console.log(`O usuario ${novoUser.name} foi adicionado na lista`);
-                infoUser('luiz0ph');
             });
         }))
         .catch((err) => console.error(`Erro: ${err}`))
 }
-
-// Teste com meu github
-requisicaoGithub('luiz0ph');
 
 // Função para procurar um usuario em especifico
 function procurarUser(login: string) {
@@ -54,31 +50,86 @@ function procurarUser(login: string) {
     return users.find(user => user.login === login);
 }
 
-function infoUser(login: string) {
+async function repoUser(login: string) {
     const user = procurarUser(login);
     if (!user) {
         return "Usuario não encontrado";
     }
 
     console.log(`Usuario: ${user.login}`);
-    fetch(user.repos_url, {
+    await fetch(user.repos_url, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'
         }})
             .then(res => res.json().then(dado => {
-                // Exibir os dados dos 3 primeiros repositorios
-                console.log(`Repositorio: ${dado[0].name}`) // Nome do repositorio
-                console.log(`Descrição: ${dado[0].description}`) // Descrição
-                console.log(`Fork: ${dado[0].fork}`) // Fork
-                console.log(`Estrelas: ${dado[0].stargazers_count}`) // Estrelas
-
-                // Terminar mais tarde de fazer os outros dois
+                for (let i = 0; i < 3; i++) {
+                    console.log(`Repositorio: ${dado[i].name}`) // Nome do repositorio
+                    console.log(`Descrição: ${dado[i].description}`) // Descrição
+                    console.log(`Fork: ${dado[i].fork}`) // Fork
+                    console.log(`Estrelas: ${dado[i].stargazers_count}`) // Estrelas
+                    console.log('')
+                }
             }))
             .catch((err) => console.error(`Erro: ${err}`));
+}
+
+function somaDosRepositorios() {
+    let sum: number;
+    for (let i = 0; i < users.length; i++) {
+        sum += users[i].public_repos;
+    }
+    console.log(`A soma de todos os repositorios é de ${sum}`);
 }
 
 // Listar usuarios salvos na lista
 function listarUsuarios() {
     console.log(users);
 }
+
+let continuar:boolean = true;
+async function perguntas() {
+    while (continuar) {
+        console.log('');
+        console.log('--- Pesquisa no Github ---');
+        console.log('1. Adicionar Usuario na lista');
+        console.log('2. Procurar usuario na lista');
+        console.log('3. Listar Repositorios');
+        console.log('4. Somar Repositorios');
+        console.log('5. Listar Usuarios');
+        console.log('6. Sair');
+        console.log('---------------------------');
+        
+        const res:number = prompt.questionInt('Sua escolha: ');
+        console.clear();
+    
+        switch (res) {
+            case 1:
+                const value = prompt.question('Login do usuario: ');
+                await addUser(value);
+                break
+            case 2:
+                const valuePesquisa = prompt.question('Login do usuario: ');
+                await procurarUser(valuePesquisa);
+                break
+            case 3:
+                const valueList = prompt.question('Login do usuario: ');
+                await repoUser(valueList);
+                break
+            case 4:
+                await somaDosRepositorios();
+                break
+            case 5:
+                await listarUsuarios();
+                break
+            case 6:
+                console.log('Saindo...');
+                continuar = false;
+                break
+            default:
+                console.error('Opção invalida');
+        }
+    }
+}
+
+perguntas();
