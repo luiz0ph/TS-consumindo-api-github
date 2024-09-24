@@ -22,27 +22,32 @@ class User {
 // Função que recebe o nome do usuario e faz uma requisição
 function addUser(nomeDoUser) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield fetch(`https://api.github.com/users/${nomeDoUser}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
+        try {
+            if (procurarUser(nomeDoUser) !== false) {
+                return console.log('Esse usuario já foi adicionado na lista!');
             }
-        })
-            .then((res => {
-            const data = res.json().then(dado => {
-                const novoUser = new User(dado.id, dado.login, dado.name, dado.bio, dado.public_repos, dado.repos_url);
-                users.push(novoUser);
-                console.log(`O usuario ${novoUser.name} foi adicionado na lista`);
-            });
-        }))
-            .catch((err) => console.error(`Erro: ${err}`));
+            const res = yield fetch(`https://api.github.com/users/${nomeDoUser}`);
+            const dado = yield res.json();
+            const novoUser = new User(dado.id, dado.login, dado.name, dado.bio, dado.public_repos, dado.repos_url);
+            users.push(novoUser);
+            console.log(`O usuario ${novoUser.name} foi adicionado na lista`);
+        }
+        catch (err) {
+            console.error(`Erro: ${err}`);
+        }
     });
 }
 // Função para procurar um usuario em especifico
 function procurarUser(login) {
-    // No TS o find parece dar erro (NÃO DA ERRO NO JS)
-    return users.find(user => user.login === login);
+    const result = users.find(user => user.login === login);
+    if (result == undefined) {
+        return false;
+    }
+    else {
+        return result;
+    }
 }
+// Listar repositórios de um usuário
 function repoUser(login) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = procurarUser(login);
@@ -50,26 +55,24 @@ function repoUser(login) {
             return "Usuario não encontrado";
         }
         console.log(`Usuario: ${user.login}`);
-        yield fetch(user.repos_url, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-            .then(res => res.json().then(dado => {
-            for (let i = 0; i < 3; i++) {
-                console.log(`Repositorio: ${dado[i].name}`); // Nome do repositorio
-                console.log(`Descrição: ${dado[i].description}`); // Descrição
-                console.log(`Fork: ${dado[i].fork}`); // Fork
-                console.log(`Estrelas: ${dado[i].stargazers_count}`); // Estrelas
+        try {
+            const res = yield fetch(user.repos_url);
+            const dado = yield res.json();
+            for (let i = 0; i < Math.min(3, dado.length); i++) { // Garante que só itera até o número de repositórios disponíveis
+                console.log(`Repositorio: ${dado[i].name}`);
+                console.log(`Descrição: ${dado[i].description}`);
+                console.log(`Fork: ${dado[i].fork}`);
+                console.log(`Estrelas: ${dado[i].stargazers_count}`);
                 console.log('');
             }
-        }))
-            .catch((err) => console.error(`Erro: ${err}`));
+        }
+        catch (err) {
+            console.error(`Erro: ${err}`);
+        }
     });
 }
 function somaDosRepositorios() {
-    let sum;
+    let sum = 0;
     for (let i = 0; i < users.length; i++) {
         sum += users[i].public_repos;
     }
@@ -98,23 +101,26 @@ function perguntas() {
                 case 1:
                     const value = prompt.question('Login do usuario: ');
                     yield addUser(value);
-                    setInterval(() => {
-                        console.log('...');
-                    }, 1000);
                     break;
                 case 2:
                     const valuePesquisa = prompt.question('Login do usuario: ');
-                    yield procurarUser(valuePesquisa);
+                    const user = procurarUser(valuePesquisa);
+                    if (!user) {
+                        console.log('Usuario não encontrado');
+                    }
+                    else {
+                        console.log(user);
+                    }
                     break;
                 case 3:
                     const valueList = prompt.question('Login do usuario: ');
                     yield repoUser(valueList);
                     break;
                 case 4:
-                    yield somaDosRepositorios();
+                    somaDosRepositorios();
                     break;
                 case 5:
-                    yield listarUsuarios();
+                    listarUsuarios();
                     break;
                 case 6:
                     console.log('Saindo...');
