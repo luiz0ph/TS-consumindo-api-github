@@ -23,7 +23,7 @@ Durante o desenvolvimento, foram aplicados conceitos fundamentais de controle de
 1. **Instale as dependências**: Certifique-se de que o Node.js está instalado.
 2. **Clone o repositório**: Use o Git para clonar este repositório.
    ```bash
-   git clone https://github.com/seu-usuario/ts-consumindo-api-github.git
+   git clone https://github.com/luiz0ph/ts-consumindo-api-github.git
 3. **Abra o projeto no editor de código.**
 4. **Compile o TypeScript**: Rode o comando para compilar os arquivos TypeScript.
    ```bash
